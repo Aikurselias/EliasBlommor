@@ -15,138 +15,98 @@
       line-height: 1.6;
     }
     header {
-      background: linear-gradient(135deg, #5a8c6a, #3a5c48);
+      background: #4a704e;
       color: white;
       text-align: center;
-      padding: 3.5rem 1rem 2.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      padding: 3rem 1rem 2rem;
     }
-    header h1 {
-      margin: 0;
-      font-size: 3rem;
-    }
-    header p {
-      font-size: 1.35rem;
-      margin: 0.6rem 0 0;
-      opacity: 0.95;
-    }
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 2rem 1.2rem;
-    }
+    header h1 { margin: 0; font-size: 2.8rem; }
+    header p { font-size: 1.3rem; margin: 0.5rem 0 0; opacity: 0.95; }
+    .creator { font-size: 1.1rem; margin-top: 1rem; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
     section {
       background: white;
-      border-radius: 16px;
-      padding: 2.2rem;
-      margin-bottom: 2.5rem;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     h2 {
       color: #3a5c48;
-      margin-top: 0;
-      border-bottom: 4px solid #d4e8d9;
-      padding-bottom: 0.7rem;
+      border-bottom: 3px solid #d4e8d9;
+      padding-bottom: 0.6rem;
     }
+
     .flowers-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1.8rem;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.5rem;
       margin: 2rem 0;
     }
     .flower-card {
       text-align: center;
       background: #f9fdf9;
-      border-radius: 12px;
-      padding: 1.2rem;
-      transition: all 0.18s ease;
       border: 1px solid #e5f0e5;
-    }
-    .flower-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 12px 28px rgba(0,0,0,0.12);
-      border-color: #b8d5bf;
+      border-radius: 10px;
+      padding: 1rem;
     }
     .flower-card img {
       width: 100%;
-      height: 180px;
+      height: 160px;
       object-fit: cover;
-      border-radius: 10px;
-      margin-bottom: 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.8rem;
     }
+
     .demo-area {
       text-align: center;
-      margin: 3rem 0 1rem;
-      padding: 1.5rem;
+      padding: 2rem;
       background: #f8fcf8;
-      border-radius: 12px;
       border: 1px dashed #a8c9b0;
+      border-radius: 12px;
     }
     #preview {
-      max-width: 360px;
+      max-width: 340px;
       margin: 1.5rem auto;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       display: none;
     }
     #output {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
       font-weight: bold;
       margin: 1.5rem 0;
-      min-height: 2.4rem;
       color: #2d5a3f;
     }
-    button, label {
+    label {
       background: #3a5c48;
       color: white;
-      border: none;
-      padding: 1rem 2.2rem;
-      font-size: 1.15rem;
+      padding: 0.9rem 2rem;
       border-radius: 50px;
       cursor: pointer;
-      transition: all 0.2s;
+      font-size: 1.1rem;
       display: inline-block;
-      margin: 0.6rem;
-    }
-    button:hover, label:hover {
-      background: #2e4a3a;
-      transform: translateY(-2px);
-    }
-    input[type="file"] {
-      display: none;
-    }
-    .status {
-      font-style: italic;
-      color: #555;
       margin: 1rem 0;
-      padding: 1rem;
-      border: 1px solid #a8c9b0;
-      background: #e8f4ec;
-      border-radius: 8px;
-      max-width: 400px;
-      margin-left: auto;
-      margin-right: auto;
     }
+    input[type="file"] { display: none; }
+
+    .status {
+      font-weight: bold;
+      padding: 1rem;
+      border-radius: 8px;
+      max-width: 500px;
+      margin: 1.5rem auto;
+    }
+    .status.loading  { background: #fff3cd; color: #856404; }
+    .status.success { background: #d4edda; color: #155724; }
+    .status.error   { background: #f8d7da; color: #721c24; }
+
     footer {
       text-align: center;
-      padding: 2.5rem 1rem;
+      padding: 2rem;
       color: #666;
       font-size: 0.95rem;
-      border-top: 1px solid #e0e0e0;
-      margin-top: 3rem;
-    }
-    a {
-      color: #3a5c48;
-      font-weight: 500;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    .creator {
-      font-size: 1.1rem;
-      margin-top: 1rem;
-      color: #fff;
     }
   </style>
 </head>
@@ -163,26 +123,25 @@
     <section>
       <h2>Blommor modellen känner igen</h2>
       <p>Tränad med MobileNetV2 på bilder av följande arter:</p>
-      
       <div class="flowers-grid">
         <div class="flower-card">
-          <img src="https://images.unsplash.com/photo-1587749095336-6f3a4f553d9e?auto=format&fit=crop&w=800&q=80" alt="Tusensköna">
+          <img src="https://images.unsplash.com/photo-1587749095336-6f3a4f553d9e" alt="Tusensköna">
           <strong>Daisy</strong><br>Tusensköna
         </div>
         <div class="flower-card">
-          <img src="https://images.unsplash.com/photo-1626097297047-45d49d9f6d8e?auto=format&fit=crop&w=800&q=80" alt="Maskros">
+          <img src="https://images.unsplash.com/photo-1626097297047-45d49d9f6d8e" alt="Maskros">
           <strong>Dandelion</strong><br>Maskros
         </div>
         <div class="flower-card">
-          <img src="https://images.unsplash.com/photo-1563729783412-42b5250d8868?auto=format&fit=crop&w=800&q=80" alt="Ros">
+          <img src="https://images.unsplash.com/photo-1563729783412-42b5250d8868" alt="Ros">
           <strong>Rose</strong><br>Ros
         </div>
         <div class="flower-card">
-          <img src="https://images.unsplash.com/photo-1591889465606-14e3f97d7758?auto=format&fit=crop&w=800&q=80" alt="Solros">
+          <img src="https://images.unsplash.com/photo-1591889465606-14e3f97d7758" alt="Solros">
           <strong>Sunflower</strong><br>Solros
         </div>
         <div class="flower-card">
-          <img src="https://images.unsplash.com/photo-1554791096-5e8d6b4a6e9e?auto=format&fit=crop&w=800&q=80" alt="Tulpan">
+          <img src="https://images.unsplash.com/photo-1554791096-5e8d6b4a6e9e" alt="Tulpan">
           <strong>Tulip</strong><br>Tulpan
         </div>
       </div>
@@ -190,100 +149,91 @@
 
     <section>
       <h2>Prova själv – ladda upp en bild</h2>
-      <p>Ladda upp en bild på en blomma så analyserar modellen den. Modellen ligger i mappen tfjs_model.</p>
-      
+      <p>Ladda upp en bild på en blomma så analyserar modellen den (körs i webbläsaren).</p>
+
       <div class="demo-area">
         <label for="imageUpload">Välj en bild →</label>
         <input type="file" id="imageUpload" accept="image/*">
-        
-        <img id="preview" alt="Förhandsgranskning">
-        <div id="output">Ladda upp en bild för att börja...</div>
-        <div id="status" class="status">Laddar modell... (kan ta 5–15 sekunder första gången)</div>
-      </div>
-    </section>
 
-    <section>
-      <h2>Om modellen</h2>
-      <ul>
-        <li>Bas: MobileNetV2 (lättviktig CNN)</li>
-        <li>Tränad med: Keras → konverterad till TensorFlow.js</li>
-        <li>Modellstorlek: ~8 MB (model.json + shards)</li>
-        <li>Klasser: daisy, dandelion, rose, sunflower, tulip</li>
-        <li>Körs 100% i webbläsaren – ingen server behövs</li>
-      </ul>
-      <p>GitHub-repo: <a href="https://github.com/Aikurselias/EliasBlommor">github.com/Aikurselias/EliasBlommor</a></p>
-      <p>Tips: Om du har stora modellfiler, ladda upp dem som ZIP-arkiv till GitHub och extrahera till tfjs_model-mappen.</p>
+        <img id="preview" alt="Förhandsgranskning">
+
+        <div id="output">Ladda upp en bild för att börja...</div>
+        <div id="status" class="status loading">Laddar modell... (kan ta 5–20 sekunder första gången)</div>
+      </div>
     </section>
 
   </div>
 
   <footer>
-    <p>Skapad med TensorFlow.js av Elias B., AI-kurs • 2026 • MIT-licens</p>
+    <p>GitHub: <a href="https://github.com/Aikurselias/EliasBlommor" style="color:#3a5c48;">github.com/Aikurselias/EliasBlommor</a> • MIT-licens</p>
   </footer>
 
   <script>
-    const MODEL_PATH = './tfjs_model/model.json';
+    const MODEL_URL = './tfjs_model/model.json';
 
-    let model;
-    const status = document.getElementById('status');
-    const output = document.getElementById('output');
-    const preview = document.getElementById('preview');
+    let model = null;
+    const statusEl = document.getElementById('status');
+    const outputEl = document.getElementById('output');
+    const previewEl = document.getElementById('preview');
+
     const CLASS_NAMES = ['daisy', 'dandelion', 'rose', 'sunflower', 'tulip'];
-    const SV_NAMES = ['Tusensköna', 'Maskros', 'Ros', 'Solros', 'Tulpan'];
+    const SV_NAMES   = ['Tusensköna', 'Maskros', 'Ros', 'Solros', 'Tulpan'];
 
-    status.textContent = 'Laddar modell... (kan ta 5–15 sekunder första gången)';
-
-    async function loadModel() {
+    async function init() {
       try {
-        model = await tf.loadGraphModel(MODEL_PATH);
-        status.textContent = 'Modellen är laddad och redo!';
+        console.log("Försöker ladda modell från:", MODEL_URL);
+        model = await tf.loadLayersModel(MODEL_URL);
+        console.log("Modell laddad framgångsrikt!");
+        statusEl.textContent = "Modellen är laddad ✓ Redo att analysera bilder!";
+        statusEl.className = "status success";
       } catch (err) {
-        status.textContent = 'Fel vid laddning av modellen: ' + err.message;
-        console.error(err);
+        console.error("Modell-laddningsfel:", err);
+        statusEl.textContent = "Fel vid laddning av modellen: " + err.message;
+        statusEl.className = "status error";
       }
     }
 
-    loadModel();
+    init();
 
     document.getElementById('imageUpload').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = async function(ev) {
-        preview.src = ev.target.result;
-        preview.style.display = 'block';
+      reader.onload = function(ev) {
+        previewEl.src = ev.target.result;
+        previewEl.style.display = 'block';
 
         if (!model) {
-          output.textContent = 'Modellen laddas fortfarande... vänta lite';
+          outputEl.textContent = 'Modellen laddas fortfarande... vänta lite';
           return;
         }
 
-        status.textContent = 'Analyserar bilden...';
+        statusEl.textContent = 'Analyserar bilden...';
+        statusEl.className = "status loading";
 
-        const img = document.createElement('img');
+        const img = new Image();
         img.src = ev.target.result;
-        img.onload = async () => {
+        img.onload = () => {
           const tensor = tf.browser.fromPixels(img)
             .resizeNearestNeighbor([224, 224])
             .toFloat()
             .div(127.5)
-            .sub(1)
+            .sub(1.0)
             .expandDims();
 
-          const logits = model.predict(tensor);
-          const prediction = tf.softmax(logits);
-          const probs = await prediction.data();
-          const topIndex = probs.indexOf(Math.max(...probs));
-          const confidence = (probs[topIndex] * 100).toFixed(1);
+          const prediction = model.predict(tensor);
+          const probs = prediction.softmax().dataSync();
+          const topIdx = probs.indexOf(Math.max(...probs));
+          const conf = (probs[topIdx] * 100).toFixed(1);
 
-          output.innerHTML = `Det ser ut som en <strong>${SV_NAMES[topIndex]}</strong><br>
-                              (${CLASS_NAMES[topIndex]})<br>
-                              Sannolikhet: ${confidence}%`;
+          outputEl.innerHTML = `Det ser ut som en <strong>${SV_NAMES[topIdx]}</strong><br>
+                               (${CLASS_NAMES[topIdx]}) – Sannolikhet: ${conf}%`;
 
-          status.textContent = 'Analys klar!';
+          statusEl.textContent = 'Analys klar!';
+          statusEl.className = "status success";
+
           tensor.dispose();
-          logits.dispose();
           prediction.dispose();
         };
       };
