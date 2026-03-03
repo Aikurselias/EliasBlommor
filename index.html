@@ -53,14 +53,8 @@
       padding: 1.2rem;
       transition: all 0.2s;
     }
-    .flower-card:hover {
-      border-color: #5a9bd4;
-      background: #f0f8ff;
-    }
-    .flower-card strong {
-      color: #2e5d3a;
-      font-size: 1.1rem;
-    }
+    .flower-card:hover { border-color: #5a9bd4; background: #f0f8ff; }
+    .flower-card strong { color: #2e5d3a; font-size: 1.1rem; }
 
     .demo-area {
       text-align: center;
@@ -94,9 +88,7 @@
       margin: 1rem 0;
       transition: background 0.2s;
     }
-    label:hover {
-      background: #4788c0;
-    }
+    label:hover { background: #4788c0; }
     input[type="file"] { display: none; }
 
     .status {
@@ -106,10 +98,11 @@
       max-width: 650px;
       font-weight: 500;
       line-height: 1.5;
+      white-space: pre-line;
     }
-    .loading  { background: #fff3cd; color: #664d03; }
-    .success  { background: #d4edda; color: #155724; }
-    .error    { background: #f8d7da; color: #721c24; }
+    .loading { background: #fff3cd; color: #664d03; }
+    .success { background: #d4edda; color: #155724; }
+    .error   { background: #f8d7da; color: #721c24; }
 
     footer {
       text-align: center;
@@ -133,53 +126,25 @@
     <section>
       <h2>Blommor modellen känner igen</h2>
       <p>Tränad med MobileNetV2 på bilder av följande arter:</p>
-
       <div class="flowers-grid">
-        <div class="flower-card">
-          <strong>Daisy</strong><br>Tusensköna
-        </div>
-        <div class="flower-card">
-          <strong>Dandelion</strong><br>Maskros
-        </div>
-        <div class="flower-card">
-          <strong>Rose</strong><br>Ros
-        </div>
-        <div class="flower-card">
-          <strong>Sunflower</strong><br>Solros
-        </div>
-        <div class="flower-card">
-          <strong>Tulip</strong><br>Tulpan
-        </div>
+        <div class="flower-card"><strong>Daisy</strong><br>Tusensköna</div>
+        <div class="flower-card"><strong>Dandelion</strong><br>Maskros</div>
+        <div class="flower-card"><strong>Rose</strong><br>Ros</div>
+        <div class="flower-card"><strong>Sunflower</strong><br>Solros</div>
+        <div class="flower-card"><strong>Tulip</strong><br>Tulpan</div>
       </div>
     </section>
 
     <section>
       <h2>Prova själv – ladda upp en bild</h2>
       <p>Ladda upp en bild på en blomma → modellen analyserar den direkt i webbläsaren.</p>
-
       <div class="demo-area">
         <label for="imageUpload">Välj en bild →</label>
         <input type="file" id="imageUpload" accept="image/*">
-
         <img id="preview" alt="Förhandsgranskning">
-
         <div id="output">Ladda upp en bild för att börja...</div>
-        <div id="status" class="status loading">
-          Laddar modell... (kan ta 10–60 sekunder första gången – ha tålamod)
-        </div>
+        <div id="status" class="status loading">Laddar modell... (kan ta 10–30 sekunder)</div>
       </div>
-    </section>
-
-    <section>
-      <h2>Felsökning om sidan hänger</h2>
-      <p>Om du fortfarande får "sidan svarar inte":</p>
-      <ul>
-        <li>Tryck Ctrl + F5 (eller Cmd + Shift + R på Mac) för att tvinga omladdning</li>
-        <li>Testa i Firefox eller Edge istället för Chrome/Safari</li>
-        <li>Använd en dator istället för mobil – mobil har ofta lägre prestanda</li>
-        <li>Öppna utvecklarverktygen (F12 → Console) och kolla efter felmeddelanden</li>
-      </ul>
-      <p>Modellen laddas i bakgrunden och bör inte frysa sidan längre.</p>
     </section>
 
   </div>
@@ -190,101 +155,103 @@
 
   <script>
     const MODEL_URL = './tfjs_model/model.json';
+    const engNames  = ['daisy', 'dandelion', 'rose', 'sunflower', 'tulip'];
+    const svNames   = ['Tusensköna', 'Maskros', 'Ros', 'Solros', 'Tulpan'];
 
     let model = null;
-    const status = document.getElementById('status');
-    const output = document.getElementById('output');
-    const preview = document.getElementById('preview');
+    const statusEl = document.getElementById('status');
+    const outputEl = document.getElementById('output');
+    const previewEl = document.getElementById('preview');
 
-    const engNames = ['daisy', 'dandelion', 'rose', 'sunflower', 'tulip'];
-    const svNames  = ['Tusensköna', 'Maskros', 'Ros', 'Solros', 'Tulpan'];
+    // ── Preprocess exactly as training: scale to [-1, 1] ──────────────────
+    function preprocess(img) {
+      return tf.tidy(() =>
+        tf.browser.fromPixels(img)
+          .resizeNearestNeighbor([224, 224])
+          .toFloat()
+          .div(127.5)
+          .sub(1.0)
+          .expandDims(0)           // shape [1, 224, 224, 3]
+      );
+    }
 
     async function loadModel() {
       try {
-        status.textContent = 'Byter till CPU-backend och laddar modell... (vänta)';
-        status.className = 'status loading';
+        statusEl.textContent = 'Laddar modell...';
+        statusEl.className = 'status loading';
 
-        await tf.setBackend('cpu');
+        // webgl is fastest but sometimes crashes on mobile – fall back to cpu
+        await tf.setBackend('webgl').catch(() => tf.setBackend('cpu'));
         await tf.ready();
         console.log('Backend:', tf.getBackend());
 
-        console.log('Laddar modell från:', MODEL_URL);
         model = await tf.loadLayersModel(MODEL_URL, {
-          onProgress: (fraction) => {
-            status.textContent = `Laddar modell... (${Math.round(fraction * 100)}%)`;
-          }
+          onProgress: p =>
+            statusEl.textContent = `Laddar modell... ${Math.round(p * 100)}%`
         });
 
-        console.log('Modell laddad!');
-        status.textContent = 'Modellen är laddad ✓ Redo att analysera bilder!';
-        status.className = 'status success';
+        // Warm-up pass so first real prediction is fast
+        const dummy = tf.zeros([1, 224, 224, 3]);
+        model.predict(dummy).dispose();
+        dummy.dispose();
+
+        statusEl.textContent = '✓ Modellen är laddad – välj en bild!';
+        statusEl.className = 'status success';
       } catch (err) {
-        console.error('Fel:', err);
-        let msg = 'Kunde inte ladda modellen: ' + (err.message || err);
-
-        if (msg.includes('RandomFlip') || msg.includes('Unknown layer')) {
-          msg += '\n\nAugmenteringslager finns kvar i model.json – redigera filen!';
-        } else if (msg.includes('fetch') || msg.includes('CORS')) {
-          msg += '\n\nKontrollera att model.json och .bin-filer är åtkomliga på GitHub.';
-        } else {
-          msg += '\n\nTesta i annan webbläsare eller på dator.';
-        }
-
-        status.textContent = msg;
-        status.className = 'status error';
+        console.error(err);
+        statusEl.textContent =
+          'Kunde inte ladda modellen:\n' + (err.message || err) +
+          '\n\nKontrollera att model.json inte innehåller RandomFlip/RandomRotation ' +
+          '(kör fix_model.py och ladda upp ny model.json).';
+        statusEl.className = 'status error';
       }
     }
 
-    loadModel();
-
-    document.getElementById('imageUpload').addEventListener('change', async (e) => {
+    document.getElementById('imageUpload').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = (ev) => {
-        preview.src = ev.target.result;
-        preview.style.display = 'block';
+      reader.onload = ev => {
+        previewEl.src = ev.target.result;
+        previewEl.style.display = 'block';
 
         if (!model) {
-          output.textContent = 'Modellen laddas fortfarande...';
+          outputEl.textContent = 'Modellen laddas fortfarande, försök igen om ett ögonblick...';
           return;
         }
 
-        status.textContent = 'Analyserar bilden...';
-        status.className = 'status loading';
+        statusEl.textContent = 'Analyserar...';
+        statusEl.className = 'status loading';
 
         const img = new Image();
         img.src = ev.target.result;
         img.onload = async () => {
           try {
-            const tensor = tf.browser.fromPixels(img)
-              .resizeNearestNeighbor([224, 224])
-              .toFloat()
-              .div(127.5)
-              .sub(1)
-              .expandDims();
+            const tensor = preprocess(img);
+            const logits  = model.predict(tensor);
+            const probs   = await logits.softmax().data();
+            tf.dispose([tensor, logits]);
 
-            const prediction = model.predict(tensor);
-            const probs = await prediction.softmax().data();
-            const topIndex = probs.indexOf(Math.max(...probs));
-            const confidence = (probs[topIndex] * 100).toFixed(1);
+            const top  = probs.indexOf(Math.max(...probs));
+            const conf = (probs[top] * 100).toFixed(1);
 
-            output.innerHTML = `Det ser ut som en <strong>${svNames[topIndex]}</strong><br>
-                               (${engNames[topIndex]}) – ${confidence}% säkerhet`;
+            outputEl.innerHTML =
+              `Det ser ut som en <strong>${svNames[top]}</strong><br>` +
+              `(${engNames[top]}) – ${conf}% säkerhet`;
 
-            status.textContent = 'Analys klar!';
-            status.className = 'status success';
-
-            tf.dispose([tensor, prediction]);
+            statusEl.textContent = 'Analys klar!';
+            statusEl.className = 'status success';
           } catch (err) {
-            output.textContent = 'Fel vid analys: ' + err.message;
-            status.className = 'status error';
+            outputEl.textContent = 'Fel vid analys: ' + err.message;
+            statusEl.className = 'status error';
           }
         };
       };
       reader.readAsDataURL(file);
     });
+
+    loadModel();
   </script>
 
 </body>
