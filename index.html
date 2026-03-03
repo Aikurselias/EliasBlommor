@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EliasBlommor – AI som känner igen blommor</title>
+  <title>EliasBlommor – AI blom-igenkänning</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       margin: 0;
       padding: 0;
-      background: linear-gradient(to bottom, #f0f7f4, #ffffff);
+      background: linear-gradient(to bottom, #f5f9f5, #ffffff);
       color: #2d3e2f;
       line-height: 1.6;
     }
@@ -18,31 +18,32 @@
       background: #4a704e;
       color: white;
       text-align: center;
-      padding: 3rem 1rem 2rem;
+      padding: 2.5rem 1rem 1.8rem;
     }
-    header h1 { margin: 0; font-size: 2.8rem; }
-    header p { font-size: 1.3rem; margin: 0.5rem 0 0; opacity: 0.95; }
-    .creator { font-size: 1.1rem; margin-top: 1rem; }
+    h1 { margin: 0; font-size: 2.6rem; }
+    header p { margin: 0.6rem 0 0; font-size: 1.25rem; opacity: 0.95; }
+    .creator { margin-top: 1rem; font-size: 1.05rem; }
 
-    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem; }
     section {
       background: white;
       border-radius: 12px;
-      padding: 2rem;
+      padding: 1.8rem;
       margin-bottom: 2rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
     }
     h2 {
       color: #3a5c48;
-      border-bottom: 3px solid #d4e8d9;
-      padding-bottom: 0.6rem;
+      border-bottom: 3px solid #e0f0e0;
+      padding-bottom: 0.5rem;
+      margin-top: 0;
     }
 
     .flowers-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1.5rem;
-      margin: 2rem 0;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 1.4rem;
+      margin: 1.8rem 0;
     }
     .flower-card {
       text-align: center;
@@ -53,37 +54,38 @@
     }
     .flower-card img {
       width: 100%;
-      height: 160px;
+      height: 150px;
       object-fit: cover;
       border-radius: 8px;
-      margin-bottom: 0.8rem;
+      margin-bottom: 0.7rem;
     }
 
     .demo-area {
       text-align: center;
-      padding: 2rem;
+      padding: 2rem 1rem;
       background: #f8fcf8;
-      border: 1px dashed #a8c9b0;
+      border: 1px dashed #b0d0b8;
       border-radius: 12px;
     }
     #preview {
-      max-width: 340px;
+      max-width: 320px;
       margin: 1.5rem auto;
       border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
       display: none;
     }
     #output {
-      font-size: 1.5rem;
+      font-size: 1.45rem;
       font-weight: bold;
-      margin: 1.5rem 0;
+      margin: 1.4rem 0;
+      min-height: 3rem;
       color: #2d5a3f;
     }
     label {
       background: #3a5c48;
       color: white;
-      padding: 0.9rem 2rem;
-      border-radius: 50px;
+      padding: 0.9rem 2.2rem;
+      border-radius: 999px;
       cursor: pointer;
       font-size: 1.1rem;
       display: inline-block;
@@ -92,20 +94,21 @@
     input[type="file"] { display: none; }
 
     .status {
-      font-weight: bold;
-      padding: 1rem;
+      padding: 1rem 1.4rem;
       border-radius: 8px;
-      max-width: 500px;
+      font-weight: 500;
+      max-width: 600px;
       margin: 1.5rem auto;
+      line-height: 1.5;
     }
-    .status.loading  { background: #fff3cd; color: #856404; }
-    .status.success { background: #d4edda; color: #155724; }
-    .status.error   { background: #f8d7da; color: #721c24; }
+    .status.loading  { background: #fff3cd; color: #664d03; }
+    .status.success { background: #d4edda; color: #0f5132; }
+    .status.error   { background: #f8d7da; color: #842029; }
 
     footer {
       text-align: center;
-      padding: 2rem;
-      color: #666;
+      padding: 2rem 1rem;
+      color: #555;
       font-size: 0.95rem;
     }
   </style>
@@ -114,7 +117,7 @@
 
   <header>
     <h1>EliasBlommor</h1>
-    <p>AI som känner igen 5 vanliga blommor – körs direkt i webbläsaren</p>
+    <p>AI som känner igen 5 vanliga blommor – körs i webbläsaren</p>
     <div class="creator">Skapad av Elias B., AI-kurs</div>
   </header>
 
@@ -123,6 +126,7 @@
     <section>
       <h2>Blommor modellen känner igen</h2>
       <p>Tränad med MobileNetV2 på bilder av följande arter:</p>
+
       <div class="flowers-grid">
         <div class="flower-card">
           <img src="https://images.unsplash.com/photo-1587749095336-6f3a4f553d9e" alt="Tusensköna">
@@ -149,92 +153,122 @@
 
     <section>
       <h2>Prova själv – ladda upp en bild</h2>
-      <p>Ladda upp en bild på en blomma så analyserar modellen den (körs i webbläsaren).</p>
+      <p>Ladda upp en bild på en blomma → modellen analyserar den direkt i webbläsaren.</p>
 
       <div class="demo-area">
         <label for="imageUpload">Välj en bild →</label>
         <input type="file" id="imageUpload" accept="image/*">
 
-        <img id="preview" alt="Förhandsgranskning">
+        <img id="preview" alt="Förhandsgranskning av bilden">
 
         <div id="output">Ladda upp en bild för att börja...</div>
-        <div id="status" class="status loading">Laddar modell... (kan ta 5–20 sekunder första gången)</div>
+        <div id="status" class="status loading">
+          Laddar modell... (kan ta 5–30 sekunder första gången)<br>
+          <small>Om det blir fel med "Unknown layer: RandomFlip" osv → se instruktioner längre ner</small>
+        </div>
       </div>
+    </section>
+
+    <section>
+      <h2>Viktigt – om modellen inte laddas (vanligt fel)</h2>
+      <p>Du får troligen felet <strong>"Unknown layer: RandomFlip"</strong> eftersom augmenteringslagren (RandomFlip, RandomRotation, RandomZoom, RandomContrast) ligger kvar i model.json.</p>
+      <p><strong>Snabbaste lösningen just nu:</strong></p>
+      <ol>
+        <li>Öppna <code>tfjs_model/model.json</code> i GitHub (redigera filen direkt i webbläsaren)</li>
+        <li>Leta efter blocket som börjar med <code>"class_name": "Sequential"</code> (augmenteringslagren)</li>
+        <li>Ta bort hela det blocket (från {"class_name": "Sequential" ... till motsvarande slutklammer)</li>
+        <li>Ändra "inbound_nodes" för nästa lager (MobileNetV2-delen) så det pekar direkt på input-lagret, t.ex.:
+           <pre>"inbound_nodes": [[["input_2", 0, 0, {}]]]</pre>
+        </li>
+        <li>Commit ändringen → vänta 1–2 min → uppdatera sidan (Ctrl+F5)</li>
+      </ol>
+      <p>Alternativt: Träna om modellen i Python utan att ha augmenteringslagren i den slutgiltiga modellen som exporteras.</p>
     </section>
 
   </div>
 
   <footer>
-    <p>GitHub: <a href="https://github.com/Aikurselias/EliasBlommor" style="color:#3a5c48;">github.com/Aikurselias/EliasBlommor</a> • MIT-licens</p>
+    <p>Repo: <a href="https://github.com/Aikurselias/EliasBlommor" style="color:#3a5c48;">github.com/Aikurselias/EliasBlommor</a></p>
   </footer>
 
   <script>
     const MODEL_URL = './tfjs_model/model.json';
 
     let model = null;
-    const statusEl = document.getElementById('status');
-    const outputEl = document.getElementById('output');
-    const previewEl = document.getElementById('preview');
+    const status = document.getElementById('status');
+    const output = document.getElementById('output');
+    const preview = document.getElementById('preview');
 
-    const CLASS_NAMES = ['daisy', 'dandelion', 'rose', 'sunflower', 'tulip'];
-    const SV_NAMES   = ['Tusensköna', 'Maskros', 'Ros', 'Solros', 'Tulpan'];
+    const engNames = ['daisy', 'dandelion', 'rose', 'sunflower', 'tulip'];
+    const svNames  = ['Tusensköna', 'Maskros', 'Ros', 'Solros', 'Tulpan'];
 
-    async function init() {
+    async function loadModel() {
       try {
-        console.log("Försöker ladda modell från:", MODEL_URL);
+        console.log("Laddar modell från:", MODEL_URL);
         model = await tf.loadLayersModel(MODEL_URL);
-        console.log("Modell laddad framgångsrikt!");
-        statusEl.textContent = "Modellen är laddad ✓ Redo att analysera bilder!";
-        statusEl.className = "status success";
+        console.log("Modell laddad!");
+        status.textContent = "Modellen är laddad ✓ Redo!";
+        status.className = "status success";
       } catch (err) {
-        console.error("Modell-laddningsfel:", err);
-        statusEl.textContent = "Fel vid laddning av modellen: " + err.message;
-        statusEl.className = "status error";
+        console.error("Laddningsfel:", err);
+        let msg = "Kunde inte ladda modellen:\n" + err.message;
+
+        if (err.message.includes("Unknown layer") || err.message.includes("Random")) {
+          msg += "\n\nVanligt problem: Augmenteringslager (RandomFlip m.fl.) finns kvar i model.json.\n" +
+                 "Lösning: Redigera model.json och ta bort Sequential-blocket med Random-lagren (se ovan).";
+        }
+
+        status.textContent = msg;
+        status.className = "status error";
       }
     }
 
-    init();
+    loadModel();
 
-    document.getElementById('imageUpload').addEventListener('change', async (e) => {
+    document.getElementById('imageUpload').addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function(ev) {
-        previewEl.src = ev.target.result;
-        previewEl.style.display = 'block';
+      reader.onload = ev => {
+        preview.src = ev.target.result;
+        preview.style.display = 'block';
 
         if (!model) {
-          outputEl.textContent = 'Modellen laddas fortfarande... vänta lite';
+          output.textContent = 'Modellen laddas fortfarande...';
           return;
         }
 
-        statusEl.textContent = 'Analyserar bilden...';
-        statusEl.className = "status loading";
+        status.textContent = 'Analyserar bilden...';
+        status.className = "status loading";
 
         const img = new Image();
         img.src = ev.target.result;
         img.onload = () => {
-          const tensor = tf.browser.fromPixels(img)
-            .resizeNearestNeighbor([224, 224])
-            .toFloat()
-            .div(127.5)
-            .sub(1.0)
-            .expandDims();
+          try {
+            const tensor = tf.browser.fromPixels(img)
+              .resizeNearestNeighbor([224, 224])
+              .toFloat()
+              .div(127.5)
+              .sub(1)
+              .expandDims();
 
-          const prediction = model.predict(tensor);
-          const probs = prediction.softmax().dataSync();
-          const topIdx = probs.indexOf(Math.max(...probs));
-          const conf = (probs[topIdx] * 100).toFixed(1);
+            const pred = model.predict(tensor);
+            const probs = pred.softmax().dataSync();
+            const topIdx = Array.from(probs).indexOf(Math.max(...probs));
+            const confidence = (probs[topIdx] * 100).toFixed(1);
 
-          outputEl.innerHTML = `Det ser ut som en <strong>${SV_NAMES[topIdx]}</strong><br>
-                               (${CLASS_NAMES[topIdx]}) – Sannolikhet: ${conf}%`;
+            output.innerHTML = `Det ser ut som en <strong>${svNames[topIdx]}</strong><br>
+                               (${engNames[topIdx]}) – ${confidence}% säkerhet`;
 
-          statusEl.textContent = 'Analys klar!';
-          statusEl.className = "status success";
+            status.textContent = 'Analys klar!';
+            status.className = "status success";
 
-          tensor.dispose();
-          prediction.dispose();
+            tf.dispose([tensor, pred]);
+          } catch (err) {
+            output.textContent = 'Fel vid förutsägelse: ' + err.message;
+            status.className = "status error";
+          }
         };
       };
       reader.readAsDataURL(file);
