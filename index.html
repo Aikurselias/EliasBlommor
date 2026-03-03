@@ -119,6 +119,13 @@
       font-style: italic;
       color: #555;
       margin: 1rem 0;
+      padding: 1rem;
+      border: 1px solid #a8c9b0;
+      background: #e8f4ec;
+      border-radius: 8px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
     }
     footer {
       text-align: center;
@@ -136,6 +143,11 @@
     a:hover {
       text-decoration: underline;
     }
+    .creator {
+      font-size: 1.1rem;
+      margin-top: 1rem;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -143,6 +155,7 @@
   <header>
     <h1>EliasBlommor</h1>
     <p>AI som känner igen 5 vanliga blommor – körs direkt i webbläsaren</p>
+    <div class="creator">Skapad av Elias B., AI-kurs</div>
   </header>
 
   <div class="container">
@@ -153,20 +166,20 @@
       
       <div class="flowers-grid">
         <div class="flower-card">
-          <img src="https://images.unsplash.com/photo-1591889465606-14e3f97d7758?auto=format&fit=crop&w=800&q=80" alt="Solros">
-          <strong>Sunflower</strong><br>Solros
-        </div>
-        <div class="flower-card">
-          <img src="https://images.unsplash.com/photo-1563729783412-42b5250d8868?auto=format&fit=crop&w=800&q=80" alt="Ros">
-          <strong>Rose</strong><br>Ros
-        </div>
-        <div class="flower-card">
           <img src="https://images.unsplash.com/photo-1587749095336-6f3a4f553d9e?auto=format&fit=crop&w=800&q=80" alt="Tusensköna">
           <strong>Daisy</strong><br>Tusensköna
         </div>
         <div class="flower-card">
           <img src="https://images.unsplash.com/photo-1626097297047-45d49d9f6d8e?auto=format&fit=crop&w=800&q=80" alt="Maskros">
           <strong>Dandelion</strong><br>Maskros
+        </div>
+        <div class="flower-card">
+          <img src="https://images.unsplash.com/photo-1563729783412-42b5250d8868?auto=format&fit=crop&w=800&q=80" alt="Ros">
+          <strong>Rose</strong><br>Ros
+        </div>
+        <div class="flower-card">
+          <img src="https://images.unsplash.com/photo-1591889465606-14e3f97d7758?auto=format&fit=crop&w=800&q=80" alt="Solros">
+          <strong>Sunflower</strong><br>Solros
         </div>
         <div class="flower-card">
           <img src="https://images.unsplash.com/photo-1554791096-5e8d6b4a6e9e?auto=format&fit=crop&w=800&q=80" alt="Tulpan">
@@ -177,6 +190,7 @@
 
     <section>
       <h2>Prova själv – ladda upp en bild</h2>
+      <p>Ladda upp en bild på en blomma så analyserar modellen den. Modellen ligger i mappen tfjs_model.</p>
       
       <div class="demo-area">
         <label for="imageUpload">Välj en bild →</label>
@@ -184,7 +198,7 @@
         
         <img id="preview" alt="Förhandsgranskning">
         <div id="output">Ladda upp en bild för att börja...</div>
-        <div id="status" class="status"></div>
+        <div id="status" class="status">Laddar modell... (kan ta 5–15 sekunder första gången)</div>
       </div>
     </section>
 
@@ -193,17 +207,18 @@
       <ul>
         <li>Bas: MobileNetV2 (lättviktig CNN)</li>
         <li>Tränad med: Keras → konverterad till TensorFlow.js</li>
-        <li>Modellstorlek: ~8 MB (5 shards + model.json)</li>
-        <li>Klasser: sunflower, rose, daisy, dandelion, tulip</li>
+        <li>Modellstorlek: ~8 MB (model.json + shards)</li>
+        <li>Klasser: daisy, dandelion, rose, sunflower, tulip</li>
         <li>Körs 100% i webbläsaren – ingen server behövs</li>
       </ul>
-      <p>GitHub-repo: <a href="https://github.com/EliasBlommor/EliasBlommor">github.com/EliasBlommor/EliasBlommor</a></p>
+      <p>GitHub-repo: <a href="https://github.com/Aikurselias/EliasBlommor">github.com/Aikurselias/EliasBlommor</a></p>
+      <p>Tips: Om du har stora modellfiler, ladda upp dem som ZIP-arkiv till GitHub och extrahera till tfjs_model-mappen.</p>
     </section>
 
   </div>
 
   <footer>
-    <p>Skapad med TensorFlow.js • 2026 • MIT-licens</p>
+    <p>Skapad med TensorFlow.js av Elias B., AI-kurs • 2026 • MIT-licens</p>
   </footer>
 
   <script>
@@ -221,9 +236,9 @@
     async function loadModel() {
       try {
         model = await tf.loadGraphModel(MODEL_PATH);
-        status.textContent = 'Modellen är laddad! Välj en bild ↑';
+        status.textContent = 'Modellen är laddad och redo!';
       } catch (err) {
-        status.textContent = 'Kunde inte ladda modellen: ' + err.message;
+        status.textContent = 'Fel vid laddning av modellen: ' + err.message;
         console.error(err);
       }
     }
@@ -248,25 +263,27 @@
 
         const img = document.createElement('img');
         img.src = ev.target.result;
-        img.onload = () => {
+        img.onload = async () => {
           const tensor = tf.browser.fromPixels(img)
             .resizeNearestNeighbor([224, 224])
             .toFloat()
-            .expandDims()
             .div(127.5)
-            .sub(1);
+            .sub(1)
+            .expandDims();
 
-          const prediction = model.predict(tensor);
+          const logits = model.predict(tensor);
+          const prediction = tf.softmax(logits);
           const probs = await prediction.data();
           const topIndex = probs.indexOf(Math.max(...probs));
           const confidence = (probs[topIndex] * 100).toFixed(1);
 
           output.innerHTML = `Det ser ut som en <strong>${SV_NAMES[topIndex]}</strong><br>
                               (${CLASS_NAMES[topIndex]})<br>
-                              Säkerhet: ${confidence}%`;
+                              Sannolikhet: ${confidence}%`;
 
-          status.textContent = 'Klart!';
+          status.textContent = 'Analys klar!';
           tensor.dispose();
+          logits.dispose();
           prediction.dispose();
         };
       };
