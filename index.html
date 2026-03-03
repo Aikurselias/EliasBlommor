@@ -162,25 +162,21 @@
 
         <div id="output">Ladda upp en bild för att börja...</div>
         <div id="status" class="status loading">
-          Laddar modell... (kan ta 5–30 sekunder första gången)<br>
-          <small>Om det blir fel med "Unknown layer: RandomFlip" → se instruktioner i nästa sektion</small>
+          Laddar modell... (kan ta 10–60 sekunder första gången – ha tålamod)
         </div>
       </div>
     </section>
 
     <section>
-      <h2>Vanligt fel: "Unknown layer: RandomFlip" – hur du fixar det</h2>
-      <p>Felet beror på att träningslager (RandomFlip, RandomRotation m.fl.) ligger kvar i model.json. De behövs inte för att gissa blommor.</p>
-      <p><strong>Steg-för-steg fix (tar 2–5 minuter):</strong></p>
+      <h2>Vanligt fel & fix-instruktioner</h2>
+      <p>Om sidan hänger eller visar "Unknown layer: RandomFlip":</p>
       <ol>
-        <li>Gå till GitHub → mappen <code>tfjs_model</code> → klicka på <code>model.json</code> → tryck "Edit this file"</li>
-        <li>Sök efter <code>"class_name": "Sequential"</code> (det är augmenterings-delen högst upp)</li>
-        <li>Ta bort hela blocket från {"class_name": "Sequential" ... tills motsvarande avslutande } ]</li>
-        <li>Hitta nästa stora lager (oftast "mobilenetv2_1.00_224") och ändra dess "inbound_nodes" till:<br><code>"inbound_nodes": [[["input_2", 0, 0, {}]]]</code><br>(använd rätt input-namn från din fil – oftast "input_2" eller "input_1")</li>
-        <li>Scrolla ner → "Commit changes" (skriv t.ex. "Ta bort augmenteringslager")</li>
-        <li>Vänta 30–60 sekunder → uppdatera din GitHub Pages-sida med Ctrl + F5</li>
+        <li>Gå till GitHub → tfjs_model → model.json → Edit</li>
+        <li>Ta bort hela Sequential-blocket med RandomFlip/RandomRotation/RandomZoom/RandomContrast</li>
+        <li>Ändra inbound_nodes på mobilenetv2-lagret till [["input_2", 0, 0, {}]]</li>
+        <li>Commit → vänta → Ctrl+F5 här</li>
       </ol>
-      <p>Efter detta bör modellen laddas och du kan testa uppladdning av bilder.</p>
+      <p>Om det fortfarande hänger: testa i annan webbläsare eller på dator istället för mobil.</p>
     </section>
 
   </div>
@@ -202,25 +198,42 @@
 
     async function loadModel() {
       try {
-        console.log("Försöker ladda modell från:", MODEL_URL);
-        model = await tf.loadLayersModel(MODEL_URL);
-        console.log("Modell laddad!");
-        status.textContent = "Modellen är laddad ✓ Redo att analysera bilder!";
-        status.className = "status success";
-      } catch (err) {
-        console.error("Fel:", err);
-        let msg = "Kunde inte ladda modellen:\n" + err.message;
+        status.textContent = 'Byter till CPU-backend och laddar modell... (vänta)';
+        status.className = 'status loading';
 
-        if (err.message.includes("RandomFlip") || err.message.includes("Unknown layer")) {
-          msg += "\n\nVanligt problem: Augmenteringslager finns kvar i model.json.\n" +
-                 "Lösning: Redigera model.json enligt instruktionerna ovan.";
+        // Försök CPU för att undvika WebGL-krascher
+        await tf.setBackend('cpu');
+        await tf.ready();
+        console.log('Backend satt till:', tf.getBackend());
+
+        console.log('Laddar modell från:', MODEL_URL);
+        model = await tf.loadLayersModel(MODEL_URL, {
+          onProgress: (progress) => {
+            status.textContent = `Laddar modell... (${Math.round(progress * 100)}%)`;
+          }
+        });
+
+        console.log('Modell laddad framgångsrikt!');
+        status.textContent = 'Modellen är laddad ✓ Redo att analysera bilder!';
+        status.className = 'status success';
+      } catch (err) {
+        console.error('Modell-laddningsfel:', err);
+        let msg = 'Kunde inte ladda modellen:\n' + (err.message || err);
+
+        if (msg.includes('RandomFlip') || msg.includes('Unknown layer')) {
+          msg += '\n\nAugmenteringslager finns kvar i model.json – redigera enligt instruktionerna ovan!';
+        } else if (msg.includes('timeout') || msg.includes('fetch')) {
+          msg += '\n\nLaddningen tog för lång tid. Testa igen eller kontrollera internet.';
+        } else {
+          msg += '\n\nTesta i annan webbläsare (Chrome/Firefox) eller på dator.';
         }
 
         status.textContent = msg;
-        status.className = "status error";
+        status.className = 'status error';
       }
     }
 
+    // Starta laddningen direkt
     loadModel();
 
     document.getElementById('imageUpload').addEventListener('change', async (e) => {
@@ -233,16 +246,16 @@
         preview.style.display = 'block';
 
         if (!model) {
-          output.textContent = 'Modellen laddas fortfarande...';
+          output.textContent = 'Modellen laddas fortfarande... vänta lite';
           return;
         }
 
         status.textContent = 'Analyserar bilden...';
-        status.className = "status loading";
+        status.className = 'status loading';
 
         const img = new Image();
         img.src = ev.target.result;
-        img.onload = () => {
+        img.onload = async () => {
           try {
             const tensor = tf.browser.fromPixels(img)
               .resizeNearestNeighbor([224, 224])
@@ -251,8 +264,8 @@
               .sub(1)
               .expandDims();
 
-            const prediction = model.predict(tensor);
-            const probs = prediction.softmax().dataSync();
+            const logits = model.predict(tensor);
+            const probs = await tf.softmax(logits).data();
             const topIndex = probs.indexOf(Math.max(...probs));
             const confidence = (probs[topIndex] * 100).toFixed(1);
 
@@ -260,12 +273,12 @@
                                (${engNames[topIndex]}) – ${confidence}% säkerhet`;
 
             status.textContent = 'Analys klar!';
-            status.className = "status success";
+            status.className = 'status success';
 
-            tf.dispose([tensor, prediction]);
+            tf.dispose([tensor, logits]);
           } catch (err) {
-            output.textContent = 'Fel vid analys: ' + err.message;
-            status.className = "status error";
+            output.textContent = 'Fel vid analys: ' + (err.message || err);
+            status.className = 'status error';
           }
         };
       };
